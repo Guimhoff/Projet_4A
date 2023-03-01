@@ -2,6 +2,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.datasets import load_iris
 import numpy as np
 from collections import Counter
+from sklearn.model_selection import train_test_split
 
 class DecisionTree(BaseEstimator, ClassifierMixin):
 
@@ -82,9 +83,35 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
     # Predicting
 
     def predict(self, X):
-        return []
+
+        sortie = []
+
+        for sample in X:
+            sortie.append(self.browseTree(sample, self.tree_))
+
+        return sortie
+    
+    def browseTree(self, sample, tree):
+        if len(tree) == 1:
+            return tree[0]
+        else:
+            if sample[tree[0]] <= tree[1]:
+                return self.browseTree(sample, tree[2])
+            else:
+                return self.browseTree(sample, tree[3])
+        return
+
     
 
+# Démonstration
+
 iris = load_iris()
-testTree = DecisionTree().fit(iris['data'], iris['target'])
+X_train, X_test, y_train, y_test = train_test_split(iris['data'], iris['target'])
+testTree = DecisionTree().fit(X_train, y_train)
 print(testTree.tree_)
+prediction = testTree.predict(X_test)
+print(prediction)
+print(y_test)
+
+for n in range(len(prediction)):
+    print(prediction[n] == y_test[n])
