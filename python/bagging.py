@@ -1,7 +1,8 @@
 from sklearn.base import BaseEstimator, ClassifierMixin
 from decisionTree import DecisionTree
-from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
+import numpy as np
+from sklearn.datasets import load_iris
 
 class Bagging(BaseEstimator, ClassifierMixin):
 
@@ -21,7 +22,7 @@ class Bagging(BaseEstimator, ClassifierMixin):
 
     # Training method
     def fit(self, X, y):
-        # Parameters: X: array-like, shape (n_samples, n_features), the training input data, y: array-like, shape (n_samples,), the target values.
+        # Parameters: X: array-like, shape (n_samples, n_features), the training input data; y: array-like, shape (n_samples,), the target values.
         # Returns: self: This bagging object.
 
         for n in range(self.treeCount):
@@ -54,7 +55,13 @@ class Bagging(BaseEstimator, ClassifierMixin):
 
         return output
     
-    
+    # Score method
+    def score(self, X, y):
+        # Parameters: X: array-like, shape (n_samples, n_features), the input data; y: array-like, shape (n_samples,), the expected corresponding class.
+        # Returns: score: Ratio of predictions matching the expected class.
+
+        preds = self.predict(X)
+        return np.mean(preds == y)
 
     
 
@@ -66,11 +73,12 @@ def example():
     X_train, X_test, y_train, y_test = train_test_split(iris['data'], iris['target'])
     testBagging = Bagging(50, .3).fit(X_train, y_train)
     prediction = testBagging.predict(X_test)
-    print(prediction)
-    print(y_test)
+    #print(prediction)
+    #print(y_test)
 
     for n in range(len(prediction)):
         print(prediction[n] == y_test[n])
+    print(testBagging.score(X_test, y_test))
 
 # Executed if not used as a dependency
 if __name__ == '__main__':

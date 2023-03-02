@@ -140,6 +140,13 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
                 return self.browseTree(sample, tree[3])
         return
 
+    # Score method
+    def score(self, X, y):
+        # Parameters: X: array-like, shape (n_samples, n_features), the input data; y: array-like, shape (n_samples,), the expected corresponding class.
+        # Returns: score: Ratio of predictions matching the expected class.
+        
+        preds = self.predict(X)
+        return np.mean(preds == y)
     
 
 # Demonstration
@@ -156,6 +163,8 @@ def example():
 
     for n in range(len(prediction)):
         print(prediction[n] == y_test[n])
+    
+    print(testTree.score(X_test, y_test))
 
 # Executed if not used as a dependency
 if __name__ == '__main__':
