@@ -157,4 +157,6 @@ def example():
     for n in range(len(prediction)):
         print(prediction[n] == y_test[n])
 
-example()
+# Executed if not used as a dependency
+if __name__ == '__main__':
+    example()
