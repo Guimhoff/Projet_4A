@@ -56,7 +56,7 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         sizeParent = len(X)
         if entropyParent == 0:
             # Stopping criteria (leaf of the tree)
-            return [X[0][0]]
+            return [int(X[0][0])]
         else:
             bestVar = None
             bestVal = None
