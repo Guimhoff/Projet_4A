@@ -73,7 +73,7 @@ class Bagging(BaseEstimator, ClassifierMixin):
 def example():
     iris = load_iris()
     X_train, X_test, y_train, y_test = train_test_split(iris['data'], iris['target'])
-    test_bagging = Bagging(50, .3).fit(X_train, y_train)
+    test_bagging = Bagging(50, .6).fit(X_train, y_train)
     prediction = test_bagging.predict(X_test)
     #print(prediction)
     #print(y_test)

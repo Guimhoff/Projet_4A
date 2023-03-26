@@ -3,6 +3,7 @@ from sklearn.datasets import load_iris
 import numpy as np
 from collections import Counter
 from sklearn.model_selection import train_test_split
+from random import randint
 
 class DecisionTree(BaseEstimator, ClassifierMixin):
 
@@ -147,6 +148,10 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
             # Stopping criteria (we are in a leaf)
             return tree[0]
         else:
+            # Due to errors encountered, we check if the sample has the right number of features
+            if len(sample) < tree[0]: 
+                return self.browse_tree(sample, tree[randint(2,3)])
+
             # Checking wich side of the tree we should follow
             if sample[tree[0]] <= tree[1]:
                 return self.browse_tree(sample, tree[2])
