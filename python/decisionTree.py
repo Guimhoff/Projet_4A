@@ -10,9 +10,12 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
     classNumber_ = None     # Stores number of class detected
     varNumber_ = None       # Stores number of variables detected
     logn_ = None            # Stores logarithm quotient used for entropy calculation
+    maxDepth = None         # Maximum depth of the tree
 
     # Constructor method
-    def __init__(self):
+    def __init__(self, maxDepth=999):
+        # Parameters: maxDepth: int, maximum depth of the tree.
+        self.maxDepth = maxDepth
         return
 
     ### Fitting
@@ -24,7 +27,7 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
 
         self.countClass(y)
         self.countVar(X)
-
+        
         # Adds the labels and features together into one array for easier processing
         trainValues = np.hstack((np.array(y).reshape(-1, 1), np.array(X)))
 
@@ -36,7 +39,7 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
     def countClass(self, y):
         # Parameters: y: list, target values.
 
-        self.classNumber_ = len(Counter(y))
+        self.classNumber_ = max(y) + 1
         self.logn_ = np.log(self.classNumber_)
         return
 
@@ -48,7 +51,7 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         return
 
     # Method to build the decision tree recursively
-    def buildTree(self, X):
+    def buildTree(self, X, depth=0):
         # Parameters: part: array-like, shape (n_samples, n_features), partition of the provided dataset.
         # Results: tree: decision tree corresponding to the provided dataset partition.
 
@@ -57,26 +60,29 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         if entropyParent == 0:
             # Stopping criteria (leaf of the tree)
             return [int(X[0][0])]
-        else:
-            bestVar = None
-            bestVal = None
-            bestEntropyGain = 0
-            bestChild1 = []
-            bestChild2 = []
-            # Loop through all variables and examples to find the best split
-            for var in range(self.varNumber_):
-                for example in X:
-                    list1, list2 = self.split(var, example[1+var], X)
-                    entropyGain = entropyParent - len(list1)/sizeParent * self.entropy(list1) - len(list2)/sizeParent * self.entropy(list2)
-                    if entropyGain > bestEntropyGain:
-                        bestVar = var
-                        bestVal = example[1+var]
-                        bestEntropyGain = entropyGain
-                        bestChild1 = list1
-                        bestChild2 = list2
-            # Adding the best split the best split to the tree
-            return [bestVar, bestVal, self.buildTree(bestChild1), self.buildTree(bestChild2)]
-        return
+        
+        if depth >= self.maxDepth:
+            # Stopping criteria (maximum depth reached)
+            return [int(self.mostCommonClass(X))]
+
+        bestVar = None
+        bestVal = None
+        bestEntropyGain = 0
+        bestChild1 = []
+        bestChild2 = []
+        # Loop through all variables and examples to find the best split
+        for var in range(self.varNumber_):
+            for example in X:
+                list1, list2 = self.split(var, example[1+var], X)
+                entropyGain = entropyParent - len(list1)/sizeParent * self.entropy(list1) - len(list2)/sizeParent * self.entropy(list2)
+                if entropyGain > bestEntropyGain:
+                    bestVar = var
+                    bestVal = example[1+var]
+                    bestEntropyGain = entropyGain
+                    bestChild1 = list1
+                    bestChild2 = list2
+        # Adding the best split the best split to the tree
+        return [bestVar, bestVal, self.buildTree(bestChild1, depth=depth+1), self.buildTree(bestChild2, depth=depth+1)]
 
     # Method to calculate class proportions in a partition
     def proportions(self, partition):
@@ -110,6 +116,14 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         list2 = X[X[:, var+1] > val]
         return list1, list2
     
+    # Method to find the most common class in a partition
+    def mostCommonClass(self, X):
+        # Parameters: X: array-like, shape (n_samples, n_features), the initial partition.
+        # Returns: output: int, the most common class in the partition.
+
+        output = Counter(X[:, 0]).most_common(1)[0][0]
+        return output
+
     ### Predicting
 
     # Prediction method
