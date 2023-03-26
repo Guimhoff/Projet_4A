@@ -7,15 +7,15 @@ from sklearn.model_selection import train_test_split
 class DecisionTree(BaseEstimator, ClassifierMixin):
 
     tree_ = []              # Shaped [variable, pivotValue, [variable, pivotValue, [variable, pivotValue, [class], [class]], [class]], ...]
-    classNumber_ = None     # Stores number of class detected
-    varNumber_ = None       # Stores number of variables detected
+    class_number_ = None     # Stores number of class detected
+    var_number_ = None       # Stores number of variables detected
     logn_ = None            # Stores logarithm quotient used for entropy calculation
-    maxDepth = None         # Maximum depth of the tree
+    max_depth = None         # Maximum depth of the tree
 
     # Constructor method
-    def __init__(self, maxDepth=999):
-        # Parameters: maxDepth: int, maximum depth of the tree.
-        self.maxDepth = maxDepth
+    def __init__(self, max_depth=999):
+        # Parameters: max_depth: int, maximum depth of the tree.
+        self.max_depth = max_depth
         return
 
     ### Fitting
@@ -25,71 +25,71 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         # Parameters: X: array-like, shape (n_samples, n_features), the training input data, y: array-like, shape (n_samples,), the target values.
         # Returns: self: This decision tree object.
 
-        self.countClass(y)
-        self.countVar(X)
+        self.count_class(y)
+        self.count_var(X)
         
         # Adds the labels and features together into one array for easier processing
-        trainValues = np.hstack((np.array(y).reshape(-1, 1), np.array(X)))
+        train_values = np.hstack((np.array(y).reshape(-1, 1), np.array(X)))
 
-        self.tree_ = self.buildTree(trainValues)
+        self.tree_ = self.build_tree(train_values)
 
         return self
     
     # Method to count number of unique classes in target values
-    def countClass(self, y):
+    def count_class(self, y):
         # Parameters: y: list, target values.
 
-        self.classNumber_ = max(y) + 1
-        self.logn_ = np.log(self.classNumber_)
+        self.class_number_ = max(y) + 1
+        self.logn_ = np.log(self.class_number_)
         return
 
     # Method to count and store number of variables
-    def countVar(self, X):
+    def count_var(self, X):
         # Parameters: X: array-like, shape (n_samples, n_features), the provided dataset.
         
-        self.varNumber_ = len(X[0])
+        self.var_number_ = len(X[0])
         return
 
     # Method to build the decision tree recursively
-    def buildTree(self, X, depth=0):
+    def build_tree(self, X, depth=0):
         # Parameters: part: array-like, shape (n_samples, n_features), partition of the provided dataset.
         # Results: tree: decision tree corresponding to the provided dataset partition.
 
-        entropyParent = self.entropy(X)
-        sizeParent = len(X)
-        if entropyParent == 0:
+        entropy_parent = self.entropy(X)
+        size_parent = len(X)
+        if entropy_parent == 0:
             # Stopping criteria (leaf of the tree)
             return [int(X[0][0])]
         
-        if depth >= self.maxDepth:
+        if depth >= self.max_depth:
             # Stopping criteria (maximum depth reached)
-            return [int(self.mostCommonClass(X))]
+            return [int(self.most_common_class(X))]
 
-        bestVar = None
-        bestVal = None
-        bestEntropyGain = 0
-        bestChild1 = []
-        bestChild2 = []
+        best_var = None
+        best_val = None
+        best_entropy_gain = 0
+        best_child_1 = []
+        best_child_2 = []
         # Loop through all variables and examples to find the best split
-        for var in range(self.varNumber_):
+        for var in range(self.var_number_):
             for example in X:
                 list1, list2 = self.split(var, example[1+var], X)
-                entropyGain = entropyParent - len(list1)/sizeParent * self.entropy(list1) - len(list2)/sizeParent * self.entropy(list2)
-                if entropyGain > bestEntropyGain:
-                    bestVar = var
-                    bestVal = example[1+var]
-                    bestEntropyGain = entropyGain
-                    bestChild1 = list1
-                    bestChild2 = list2
+                entropy_gain = entropy_parent - len(list1)/size_parent * self.entropy(list1) - len(list2)/size_parent * self.entropy(list2)
+                if entropy_gain > best_entropy_gain:
+                    best_var = var
+                    best_val = example[1+var]
+                    best_entropy_gain = entropy_gain
+                    best_child_1 = list1
+                    best_child_2 = list2
         # Adding the best split the best split to the tree
-        return [bestVar, bestVal, self.buildTree(bestChild1, depth=depth+1), self.buildTree(bestChild2, depth=depth+1)]
+        return [best_var, best_val, self.build_tree(best_child_1, depth=depth+1), self.build_tree(best_child_2, depth=depth+1)]
 
     # Method to calculate class proportions in a partition
     def proportions(self, partition):
         # Parameters: part: array-like, shape (n_samples, n_features), the given partition.
-        # Results: prop: array-like, shape (self.classNumber_), the proportion of each class in the given partition.
+        # Results: prop: array-like, shape (self.class_number_), the proportion of each class in the given partition.
 
-        prop = np.array([0] * self.classNumber_)
+        prop = np.array([0] * self.class_number_)
         for x in partition:
             prop[int(x[0])] += 1
         prop = prop / len(partition)
@@ -117,7 +117,7 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         return list1, list2
     
     # Method to find the most common class in a partition
-    def mostCommonClass(self, X):
+    def most_common_class(self, X):
         # Parameters: X: array-like, shape (n_samples, n_features), the initial partition.
         # Returns: output: int, the most common class in the partition.
 
@@ -134,12 +134,12 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         output = []
 
         for sample in X:
-            output.append(self.browseTree(sample, self.tree_))
+            output.append(self.browse_tree(sample, self.tree_))
 
         return output
     
     # Recursively browse the decision tree to predict the class label of the sample.
-    def browseTree(self, sample, tree):
+    def browse_tree(self, sample, tree):
         # Parameters: sample: array-like, shape (n_features,), the input data sample to predict; tree: list, the remaining part of the decision tree to browse.
         # Returns: ouptut: int, the predicted class label of the sample.
 
@@ -149,9 +149,9 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         else:
             # Checking wich side of the tree we should follow
             if sample[tree[0]] <= tree[1]:
-                return self.browseTree(sample, tree[2])
+                return self.browse_tree(sample, tree[2])
             else:
-                return self.browseTree(sample, tree[3])
+                return self.browse_tree(sample, tree[3])
         return
 
     # Score method
@@ -169,16 +169,16 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
 def example():
     iris = load_iris()
     X_train, X_test, y_train, y_test = train_test_split(iris['data'], iris['target'])
-    testTree = DecisionTree().fit(X_train, y_train)
-    print(testTree.tree_)
-    prediction = testTree.predict(X_test)
+    test_tree = DecisionTree().fit(X_train, y_train)
+    print(test_tree.tree_)
+    prediction = test_tree.predict(X_test)
     #print(prediction)
     #print(y_test)
 
     for n in range(len(prediction)):
         print(prediction[n] == y_test[n])
     
-    print(testTree.score(X_test, y_test))
+    print(test_tree.score(X_test, y_test))
 
 # Executed if not used as a dependency
 if __name__ == '__main__':
