@@ -4,6 +4,7 @@ import numpy as np
 from collections import Counter
 from sklearn.model_selection import train_test_split
 from random import randint
+import evaluationMethods as em
 
 class DecisionTree(BaseEstimator, ClassifierMixin):
 
@@ -93,7 +94,10 @@ class DecisionTree(BaseEstimator, ClassifierMixin):
         prop = np.array([0] * self.class_number_)
         for x in partition:
             prop[int(x[0])] += 1
-        prop = prop / len(partition)
+        if len(partition) != 0:
+            prop = prop / len(partition)
+        else:
+            prop = prop / 1
         return prop
 
     # Method to calculate entropy of a partition
@@ -175,15 +179,25 @@ def example():
     iris = load_iris()
     X_train, X_test, y_train, y_test = train_test_split(iris['data'], iris['target'])
     test_tree = DecisionTree().fit(X_train, y_train)
-    print(test_tree.tree_)
-    prediction = test_tree.predict(X_test)
+    #print(test_tree.tree_)
+    #prediction = test_tree.predict(X_test)
     #print(prediction)
     #print(y_test)
 
-    for n in range(len(prediction)):
-        print(prediction[n] == y_test[n])
+    # for n in range(len(prediction)):
+    #     print(prediction[n] == y_test[n])
+    # print(test_tree.score(X_test, y_test))
+
+    print(" === Train test split === ")
+
+    print("Accuracy of the model (with training data) : ", test_tree.score(X_train, y_train))
+    em.evaluateModel(test_tree, X_test, y_test, False)
     
-    print(test_tree.score(X_test, y_test))
+    print(" === Cross validation === ")
+    em.k_fold(DecisionTree, iris['data'], iris['target'])
+    print(" === Stratified cross validation === ")
+    em.stratified_k_fold(DecisionTree, iris['data'], iris['target'])
+
 
 # Executed if not used as a dependency
 if __name__ == '__main__':
